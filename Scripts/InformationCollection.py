@@ -54,7 +54,7 @@ class WebDriver():
     
     """
     def __init__(self):
-        self.header = config.header
+        pass
 
     def start_Session(self):
         self.s = requests.Session()
