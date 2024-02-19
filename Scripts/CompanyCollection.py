@@ -32,7 +32,6 @@ class CompanyCollector:
 
         for row in tableValue.find_all("tr"):
                 try:
-                    print(row.find("td").find('a',))
                     tempname = row.find("td").text
                     tempurl = domain
                     for a in  row.find("td").find_all('a', href=True):

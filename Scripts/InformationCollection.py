@@ -1,7 +1,10 @@
 from bs4 import BeautifulSoup
+from selenium.webdriver import Firefox
+from selenium.webdriver.firefox.options import Options
 
 import config
 import requests
+opts = Options()
 
 
 class Collector:
@@ -56,12 +59,23 @@ class WebDriver():
     def __init__(self):
         pass
 
+    def start_dynamic_webdriver(self):
+        opts = Options()
+        self.browser = Firefox(options=opts)
+    
     def start_Session(self):
         self.s = requests.Session()
         self.s.headers.update({'User-Agent':config.USERAGENT})
-        
+
+    def navigate_webpage_browser(self,url):
+        self.browser.get(url)
+    
     def navigate_To_Webpage(self, url:str):
         return self.s.get(url=url).content
+    
+    def close_browser(self):
+        self.browser.close()
+        quit()
         
     def end_Session(self):
         self.s.close()
