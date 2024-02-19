@@ -1,4 +1,6 @@
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+
 
 import config
 
@@ -7,8 +9,41 @@ class CompanyCollector:
     def __init__(self) -> None:
         pass
 
-    def go_through_list_companies(self) -> None:
-        pass
+    def go_through_list_companies(self,data,nameURL,url) -> dict:
+
+        result = {}
+
+        result[nameURL]= {}
+
+        result[nameURL]["url"] = url
+
+        result[nameURL]["companies"] = {}
+
+        soup = BeautifulSoup(data, 'html.parser')
+        
+
+        # print(soup)
+
+        tableValue =  soup.find('table', {"class":"wikitable sortable"})
+
+        domain = "https://" + urlparse(url).netloc
+
+        # print(tableValue)
+
+        for row in tableValue.find_all("tr"):
+                try:
+                    print(row.find("td").find('a',))
+                    tempname = row.find("td").text
+                    tempurl = domain
+                    for a in  row.find("td").find_all('a', href=True):
+                        tempurl += a['href']
+
+                    result[nameURL]["companies"][tempname] = tempurl
+                        
+                except:
+                    continue
+        return result
+
 
     def update_info(self, data):
         pass

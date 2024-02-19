@@ -23,3 +23,16 @@ class Database:
 
     def exist_DB(self, nameCompany:str):
         pass
+
+    def insert_data(self,data):
+
+        ## Add check validation check in here
+
+
+        db = self.client["JobFinderdatabase"]
+
+        col = db['companies']
+
+        x = col.insert_many(data)
+
+        print(x.inserted_ids)
