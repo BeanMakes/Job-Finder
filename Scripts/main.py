@@ -1,6 +1,8 @@
 import Database
 import InformationCollection
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+import config
 
 
 import time
@@ -15,18 +17,31 @@ if __name__ == "__main__":
 
     db.openConnection()
 
-    url = 'https://uk.indeed.com/jobs?q=data+scientist&l=&from=searchOnHP&vjk=03a27aadcc7ba2d7'
+    # db.client[config.DB_NAME]['jobs position'].drop()
+
+    url = 'https://uk.indeed.com/jobs?q=data+scientist&sc=0bf%3Aexrec%28%29%3B&sort=date&vjk=ac6474397840972d'
+
+    domain = "https://" + urlparse(url).netloc
 
     driver.start_dynamic_webdriver()
 
     driver.navigate_webpage_browser(url)
 
-    time.sleep(5)
+    time.sleep(1.5)
 
-    print(collector.retrieve_Postings_From_Page(driver.browser.page_source,db.get_data("website")[0]))
+    print(collector.retrieve_Postings_From_Page(driver.browser.page_source,db.get_data("website")[0],url))
+    # soup = BeautifulSoup(driver.browser.page_source, 'html.parser')
+    # while(soup.find('a',{'data-testid':"pagination-page-next"})):
+    #     time.sleep(1.5)
+        
+    #     driver.navigate_webpage_browser(domain+soup.find('a',{'data-testid':"pagination-page-next"})['href'])
+    #     db.insert_data("jobs position",collector.retrieve_Postings_From_Page(driver.browser.page_source,db.get_data("website")[0],url))
+    #     soup = BeautifulSoup(driver.browser.page_source, 'html.parser')
+    #     # time.sleep(5)
+    #     # break
     
 
-    time.sleep(30)
+    # time.sleep(5)
 
     # time.sleep(5)
     # url = "https://en.wikipedia.org/wiki/Microsoft"

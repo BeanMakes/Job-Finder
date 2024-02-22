@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
+from urllib.parse import urlparse
+import datetime
 
 import config
 import requests
@@ -18,7 +20,7 @@ class Collector:
     def __init__(self):
         pass
 
-    def retrieve_Postings_From_Page(self,dataString:str, dataClasses:dict) -> dict:
+    def retrieve_Postings_From_Page(self,dataString:str, dataClasses:dict,url:str) -> dict:
         """
         Function to retrieve all information that is relevent to the job posts from websites.
 
@@ -29,35 +31,49 @@ class Collector:
 
         soup = BeautifulSoup(dataString, 'html.parser')
 
-        result = {"Title":[],"company":[], "date posted":[], "link":[],"description":[]}
+        # result = {"Title":[],"company":[], "date posted":[],"location":[], "link":[],"description":[]}
+        result = []
+
+        domain = "https://" + urlparse(url).netloc
 
         # print(dataString)
 
         for post in soup.find_all(dataClasses["post"]['type'],{dataClasses["post"]['id'],dataClasses["post"]['name']}):
+            
             try:
-                print(post.find("span", {'class':"css-qvloho eu4oa1w0"}).text)
-                result["Title"].append(self.get_title(post,dataClasses['post']['title']['type'],dataClasses['post']['title']['id'],dataClasses['post']['title']['name']))
-                result["date posted"].append(self.get_date_posted(post,dataClasses['post']['date posted']['type'],dataClasses['post']['date posted']['id'],dataClasses['post']['date posted']['name']))
-                result["link"].append(self.get_link(post,dataClasses['post']['title']['type'],dataClasses['post']['title']['id'],dataClasses['post']['title']['name']))
+                temp = {}
+                # print(post.find("span", {'class':"css-qvloho eu4oa1w0"}).text)
+                temp["Title"] = self.get_title(post,dataClasses['post']['title']['type'],dataClasses['post']['title']['id'],dataClasses['post']['title']['name'])
+                temp["date posted"] = self.get_date_posted(post,dataClasses['post']['date posted']['type'],dataClasses['post']['date posted']['id'],dataClasses['post']['date posted']['name'])
+                temp['company'] = self.get_date_posted(post,dataClasses['post']['company']['type'],dataClasses['post']['company']['id'],dataClasses['post']['company']['name'])
+                temp['location'] = self.get_location(post,dataClasses['post']['location']['type'],dataClasses['post']['location']['id'],dataClasses['post']['location']['name'])
+                temp["link"] = self.get_link(post,dataClasses['post']['link']['type'],dataClasses['post']['link']['id'],dataClasses['post']['link']['name'],domain)
                 # result["description"].append(self.get_description(post,dataClasses['post']['title']['type'],dataClasses['post']['title']['id'],dataClasses['post']['title']['name']))
-            except:
-                print("Error")
+                result.append(temp)
+            except Exception as e:
+                print(e)
         return result
     
     def get_title(self,postData:str,idType:str, type:str, name:str )->str:
-
         # print(idType)
+        return postData.find(idType, {type:name}).text
+
+    def get_company(self, postData:str,idType:str, type:str, name:str):
         return postData.find(idType, {type:name}).text
 
     def get_date_posted(self, postData:str,idType:str, type:str, name:str)->str:
         # print(postData.find(idType, {type:name}))
         return postData.find(idType, {type:name}).text
 
-    def get_link(self, postData:str,idType:str, type:str, name:str) ->str:
+    def get_location(self, postData:str,idType:str, type:str, name:str):
         return postData.find(idType, {type:name}).text
+
+    def get_link(self, postData:str,idType:str, type:str, name:str,url="") ->str:
+        return url+postData.find(idType, {type:name})['href']
 
     def get_description(self, postData:str,idType:str, type:str, name:str)->str:
         return postData.find(idType, {type:name}).text
+    
 
 
 class WebDriver():
