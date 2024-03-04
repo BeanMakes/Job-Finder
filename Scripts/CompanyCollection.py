@@ -20,9 +20,6 @@ class CompanyCollector:
         result[nameURL]["companies"] = {}
 
         soup = BeautifulSoup(data, 'html.parser')
-        
-
-        # print(soup)
 
         tableValue =  soup.find('table', {"class":"wikitable sortable"})
 
