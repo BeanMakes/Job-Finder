@@ -1,93 +1,63 @@
-import tkinter as tk
-import tkinter.font as tkFont
-import tkinter.ttk as ttk
+import wx 
+import Database
+import config
+import sys 
 
-class MultiColumnListbox(object):
-    """use a ttk.TreeView as a multicolumn ListBox"""
+class Mywin(wx.Frame): 
+            
+    def __init__(self, parent, title): 
+        super(Mywin, self).__init__(parent, title = title,size = (600,500))
 
-    def __init__(self):
-        self.tree = None
-        self._setup_widgets()
-        self._build_tree()
+        panel = wx.Panel(self) 
+        box = wx.BoxSizer(wx.HORIZONTAL) 
+
+        db = Database.Database()
+
+        db.openConnection()
+
+        data = db.get_data(config.DB_COLLECTION)
+            
+        self.list = wx.ListCtrl(panel, -1, style = wx.LC_REPORT) 
+        self.list.InsertColumn(0, 'Position', width = 100) 
+        self.list.InsertColumn(1, 'Company', wx.LIST_FORMAT_RIGHT, 100) 
+        self.list.InsertColumn(2, 'Location', wx.LIST_FORMAT_RIGHT, 100) 
+        self.list.InsertColumn(3, 'URL', wx.LIST_FORMAT_RIGHT, 100) 
+        self.list.InsertColumn(4, 'Applied', wx.LIST_FORMAT_RIGHT, 100) 
+        for i in data: 
+            index = self.list.InsertStringItem(self.list.GetItemCount(), i["Title"]) 
+            self.list.SetItem(index, 1, i["company"]) 
+            self.list.SetItem(index, 2, i["location"]) 
+            self.list.SetItem(index, 3, i["link"]) 
+            self.list.SetItem(index, 4, str(False)) 
         
+        self.text = wx.StaticText(panel, label="")
 
-    def _setup_widgets(self):
-        s = """\click on header to sort by that column
-to change width of column drag boundary
-        """
-        msg = ttk.Label(wraplength="4i", justify="left", anchor="n",
-            padding=(10, 2, 10, 6), text=s)
-        # msg.pack(fill='x')
-        container = ttk.Frame()
-        container.pack(fill='both', expand=True)
-        # create a treeview with dual scrollbars
-        self.tree = ttk.Treeview(columns=headers, show="headings")
-        vsb = ttk.Scrollbar(orient="vertical",
-            command=self.tree.yview)
-        hsb = ttk.Scrollbar(orient="horizontal",
-            command=self.tree.xview)
-        self.tree.configure(yscrollcommand=vsb.set,
-            xscrollcommand=hsb.set)
-        self.tree.grid(column=0, row=0, sticky='nsew', in_=container)
-        vsb.grid(column=1, row=0, sticky='ns', in_=container)
-        hsb.grid(column=0, row=1, sticky='ew', in_=container)
-        container.grid_columnconfigure(0, weight=1)
-        container.grid_rowconfigure(0, weight=1)
-        b1 = tk.Button(container,text = "Apply")
-        b1.grid(column=2, row=0,sticky=tk.E)
+        button = wx.Button(panel, wx.ID_ANY, 'Apply', (10, 10))
+        button.Bind(wx.EVT_BUTTON, self.onButton)
+        
+        box.Add(self.list,1,wx.EXPAND) 
+        box.Add(self.text, 1, wx.EXPAND)
+        box.Add(button, wx.EXPAND)
 
-    def _build_tree(self):
-        for col in headers:
-            self.tree.heading(col, text=col.title(),
-                command=lambda c=col: sortby(self.tree, c, 0))
-            # adjust the column's width to the header string
-            self.tree.column(col,
-                width=tkFont.Font().measure(col.title()))
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onListBox, self.list) 
+        
+        panel.SetSizer(box) 
+        panel.Fit() 
+        self.Centre() 
+            
+        self.Show(True)  
 
-        for item in entries:
-            self.tree.insert('', 'end', values=item)
-            # adjust column's width if necessary to fit each value
-            for ix, val in enumerate(item):
-                col_w = tkFont.Font().measure(val)
-                if self.tree.column(headers[ix],width=None)<col_w:
-                    self.tree.column(headers[ix], width=col_w)
+    def onButton(self, event):
+        print("Button pressed.")
 
-def sortby(tree, col, descending):
-    """sort tree contents when a column header is clicked on"""
-    # grab values to sort
-    data = [(tree.set(child, col), child) \
-        for child in tree.get_children('')]
-    # if the data to be sorted is numeric change to float
-    #data =  change_numeric(data)
-    # now sort the data in place
-    data.sort(reverse=descending)
-    for ix, item in enumerate(data):
-        tree.move(item[1], '', ix)
-    # switch the heading so it will sort in the opposite direction
-    tree.heading(col, command=lambda col=col: sortby(tree, col, \
-        int(not descending)))
+    def onListBox(self, event): 
+        choice= self.list.GetFirstSelected()
+        item = self.list.GetItem(itemIdx=choice, col=0)
+        textItem=item.GetText()
+        print(choice)
+        print(textItem)
+        self.text.SetLabel(textItem)
 
-def apply(event):
-    pass
-
-# the test data ...
-
-headers = ['car', 'repair','is true']
-entries = [
-('Hyundai', 'brakes',True) ,
-('Honda', 'light',True) ,
-('Lexus', 'battery',True) ,
-('Benz', 'wiper',True) ,
-('Ford', 'tire',True) ,
-('Chevy', 'air',True) ,
-('Chrysler', 'piston',True) ,
-('Toyota', 'brake pedal',True) ,
-('BMW', 'seat',True)
-]
-
-root = tk.Tk()
-root.title("Multicolumn Treeview/Listbox")
-listbox = MultiColumnListbox()
-b1 = tk.Button(root, text = "Apply")
-# b1.grid(row=1,column=1,sticky=tk.E)
-root.mainloop()
+ex = wx.App() 
+Mywin(None,'ListBox Demo') 
+ex.MainLoop()

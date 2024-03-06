@@ -1,5 +1,8 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+import certifi
+
+
 
 import config
 
@@ -12,12 +15,12 @@ class Database:
         try:
             # MongoClient('mongodb://username:password@hostnameOrReplicaset/?tls=True') replica by your own Service URI
             uri = "mongodb+srv://{}:{}@cluster0.ogm1qsr.mongodb.net/?retryWrites=true&w=majority".format(config.DB_USERNAME,config.DB_PASSWORD)
-            self.client = MongoClient(uri)
-            print("MongoDB cluster is reachable")
-            print(self.client)
+            ca = certifi.where()
 
+            self.client = MongoClient(uri,tlsCAFile=ca)
+            self.client.admin.command('ping')
             
-        except ConnectionFailure as e:
+        except Exception as e:
             print("Could not connect to MongoDB")
             print(e)
 
@@ -27,6 +30,7 @@ class Database:
     def get_data(self,colname):
         mydb = self.client[config.DB_NAME]
         mycol = mydb[colname]
+        print(mycol)
         result = []
         for x in mycol.find():
             result.append(x)
